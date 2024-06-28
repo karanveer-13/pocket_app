@@ -15,6 +15,6 @@ data class Transaction (
     val transactionName: String,
     @ColumnInfo(name = "price")
     val transactionPrice: Double,
-//    @ColumnInfo(name = "date")
-//    val quantityInStock: Date
+    @ColumnInfo(name = "date")
+    val date: Date
 )

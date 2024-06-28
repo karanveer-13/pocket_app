@@ -5,13 +5,20 @@
     android:padding="16dp">
 <!--    Todo add time stamp too?-->
 
+<!--    <TextView-->
+<!--        android:id="@+id/tvID"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="2"-->
+<!--        android:gravity="center"-->
+<!--        android:text="Transaction ID" />-->
+
     <TextView
-        android:id="@+id/tvID"
-        android:layout_width="wrap_content"
+        android:id="@+id/tvTransactionDate"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:gravity="center"
-        android:text="Transaction ID" />
+        android:text="TextView" />
 
     <TextView
         android:id="@+id/tvTransactionName"

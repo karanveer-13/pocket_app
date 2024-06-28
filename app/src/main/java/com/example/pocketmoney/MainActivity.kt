@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
     private fun insertInDb(tname: String, price: Double) {
         val currentDateTime = Date()
         lifecycleScope.launch {
-            val item = Transaction(0, tname, price)
+            val item = Transaction(0, tname, price, currentDateTime)
             dao.insert(item)
             updateProgressBar()
         }

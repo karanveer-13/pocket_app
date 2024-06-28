@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pocketmoney.R
 import com.example.pocketmoney.database.Transaction
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
 
@@ -23,20 +25,23 @@ class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.Transacti
     }
 
     class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val tvID: TextView = itemView.findViewById(R.id.tvID)
+        //private val tvID: TextView = itemView.findViewById(R.id.tvID)
         private val tvName: TextView = itemView.findViewById(R.id.tvTransactionName)
         private val tvPrice: TextView = itemView.findViewById(R.id.tvTransactionPrice)
+        private val tvDate: TextView = itemView.findViewById(R.id.tvTransactionDate)
 
         fun bind(transaction: Transaction) {
-            tvID.text = transaction.transactionId.toString()
+            val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+            //tvID.text = transaction.transactionId.toString()
             tvName.text = transaction.transactionName
             tvPrice.text = transaction.transactionPrice.toString()
+            tvDate.text = dateFormat.format(transaction.date)
         }
     }
 
     private class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
         override fun areItemsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
-            return oldItem.transactionName == newItem.transactionName
+            return oldItem.transactionId == newItem.transactionId
         }
 
         override fun areContentsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
