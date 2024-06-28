@@ -21,11 +21,13 @@ interface TransactionDao {
     @Delete
     suspend fun delete(transaction: Transaction)
 
-    @Query("SELECT * from `transaction` WHERE id = :id")
-    fun getTransaction(id: Int): Flow<Transaction>
+    //Made changes to the getTransactionByName (gettransaction) function to get based on the name instead of the id
+
+    @Query("SELECT * from `transaction` WHERE name = :searchString")
+    fun getTransactionByName(searchString: String): Flow<List<Transaction>>
 
     @Query("SELECT * from `transaction` ORDER BY name ASC")
-    fun getTransactions(): Flow<List<Transaction>>
+    fun getAllTransactions(): Flow<List<Transaction>>
 
     @Query("SELECT SUM(price) FROM `transaction`")
     fun getTotalTransactionPrice(): Flow<Double?>

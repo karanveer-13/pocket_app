@@ -1,5 +1,6 @@
 package com.example.pocketmoney
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.EditText
@@ -31,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize the database and DAO
         val database = TransactionRoomDatabase.getDatabase(this)
-        dao = database.itemDao()
+        dao = database.transactionDao()
 
         // Retrieve and set allowance
         val storedAllowance = getStoredAllowance()
@@ -61,6 +62,11 @@ class MainActivity : AppCompatActivity() {
             val p = findViewById<EditText>(R.id.editTextNumberDecimal).text.toString()
             val price = p.toDouble()
             insertInDb(tname, price)
+        }
+        //Handle Transaction History button click
+        binding.btnTransactionHistory.setOnClickListener {
+            val intent = Intent(this, TransactionPageActivity::class.java)
+            startActivity(intent)
         }
     }
 

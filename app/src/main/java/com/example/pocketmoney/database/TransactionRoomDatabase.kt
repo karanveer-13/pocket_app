@@ -5,11 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Transaction::class], version = 1, exportSchema = false)
+@Database(entities = [Transaction::class], version = 2, exportSchema = false)
 
 abstract class TransactionRoomDatabase:RoomDatabase() {
     //companion = static in java
-    abstract fun itemDao(): TransactionDao
+    abstract fun transactionDao(): TransactionDao
 
     companion object{
         private var INSTANCE: TransactionRoomDatabase? = null   //singleton design pattern
