@@ -10,7 +10,7 @@ import java.util.Date
 @Entity  //create table transaction(id integer,name,price,date)
 data class Transaction (
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val transactionId: Int= 0,
     @ColumnInfo(name = "name")
     val transactionName: String,
     @ColumnInfo(name = "price")
