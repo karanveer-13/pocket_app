@@ -26,7 +26,7 @@ interface TransactionDao {
     @Query("SELECT * from `transaction` WHERE name = :searchString")
     fun getTransactionByName(searchString: String): Flow<List<Transaction>>
 
-    @Query("SELECT * from `transaction` ORDER BY name ASC")
+    @Query("SELECT * from `transaction` ORDER BY date ASC")
     fun getAllTransactions(): Flow<List<Transaction>>
 
     @Query("SELECT SUM(price) FROM `transaction`")

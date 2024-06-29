@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.pocketmoney.database.Transaction
 import com.example.pocketmoney.database.TransactionDao
@@ -19,6 +20,10 @@ class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     lateinit var dao: TransactionDao
 
+    private val sharedPrefs by lazy {
+        getSharedPreferences("com.example.pocketmoney", MODE_PRIVATE)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -28,6 +33,25 @@ class MainActivity : AppCompatActivity() {
         // Initialize the database and DAO
         val database = TransactionRoomDatabase.getDatabase(this)
         dao = database.transactionDao()
+
+        // Retrieve and set allowance
+        val storedAllowance = getStoredAllowance()
+        if (storedAllowance != null) {
+            binding.editTextAllowance.setText(storedAllowance.toString())
+        }
+
+        // Set allowance button click handler
+        binding.editTextAllowance.setOnClickListener {
+            val allowanceText = binding.editTextAllowance.text.toString()
+            if (allowanceText.isNotEmpty()) {
+                val allowance = allowanceText.toDouble()
+                setStoredAllowance(allowance)
+                updateProgressBar()
+                Toast.makeText(this, "Allowance set to $allowance", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Please enter a valid allowance", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         // Update progress bar when app opens
         updateProgressBar()
@@ -49,21 +73,37 @@ class MainActivity : AppCompatActivity() {
     private fun insertInDb(tname: String, price: Double) {
         val currentDateTime = Date()
         lifecycleScope.launch {
-            val item = Transaction(0, tname, price)
+            val item = Transaction(0, tname, price, currentDateTime)
             dao.insert(item)
             updateProgressBar()
         }
     }
 
     private fun updateProgressBar() {
+        val allowance = getStoredAllowance() ?: 3000.0 // Default allowance if not set
         lifecycleScope.launch {
             dao.getTotalTransactionPrice()
                 .map { total ->
-                    total?.let { ((it / 3000) * 100).toInt() } ?: 0
+                    total?.let { ((it / allowance) * 100).toInt() } ?: 0
                 }
                 .collect { progress ->
                     binding.progressBar.progress = progress
                 }
+        }
+    }
+
+    private fun setStoredAllowance(allowance: Double) {
+        with(sharedPrefs.edit()) {
+            putFloat("allowance", allowance.toFloat())
+            apply()
+        }
+    }
+
+    private fun getStoredAllowance(): Double? {
+        return if (sharedPrefs.contains("allowance")) {
+            sharedPrefs.getFloat("allowance", 3000.0f).toDouble()
+        } else {
+            null
         }
     }
 }

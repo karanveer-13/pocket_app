@@ -1,6 +1,8 @@
 package com.example.pocketmoney
 
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -10,10 +12,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pocketmoney.adapter.TransactionAdapter
 import com.example.pocketmoney.application.TransactionApplication
+import com.example.pocketmoney.database.Transaction
+import com.example.pocketmoney.databinding.ActivityMainBinding
+import com.example.pocketmoney.databinding.ActivityTransactionPageBinding
 import com.example.pocketmoney.viewmodel.TransactionViewModel
 import com.example.pocketmoney.viewmodel.TransactionViewModelFactory
 
 class TransactionPageActivity : AppCompatActivity() {
+    lateinit var binding:ActivityTransactionPageBinding
+
     private val transactionViewModel: TransactionViewModel by viewModels {
         TransactionViewModelFactory((application as TransactionApplication).repository)
     }
@@ -30,12 +37,16 @@ class TransactionPageActivity : AppCompatActivity() {
             insets
         }
 
-        val adapter = TransactionAdapter()
+        val adapter = TransactionAdapter { transaction ->
+            transactionViewModel.delete(transaction)
+            Toast.makeText(this, "Deleted transaction: ${transaction.transactionName}", Toast.LENGTH_SHORT).show()
+        }
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         transactionViewModel.allStudent.observe(this) { transactions ->
             transactions?.let { adapter.submitList(it) }
         }
+
     }
 }

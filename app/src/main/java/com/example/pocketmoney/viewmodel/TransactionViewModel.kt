@@ -19,6 +19,9 @@ class TransactionViewModel(private val repository: TransactionRepository) : View
     fun getStudentByData(searchString: String): LiveData<List<Transaction>> {
         return repository.getTransactionByName(searchString).asLiveData()
     }
+    fun delete(transaction: Transaction) = viewModelScope.launch {
+        repository.delete(transaction)
+    }
 }
 
 class TransactionViewModelFactory(private val repository: TransactionRepository) : ViewModelProvider.Factory {

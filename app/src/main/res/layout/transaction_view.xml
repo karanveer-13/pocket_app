@@ -1,23 +1,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aandroid="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp">
-<!--    Todo add time stamp too?-->
 
     <TextView
-        android:id="@+id/tvID"
-        android:layout_width="wrap_content"
+        android:id="@+id/tvTransactionDate"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:gravity="center"
-        android:text="Transaction ID" />
+        android:text="TextView" />
 
     <TextView
         android:id="@+id/tvTransactionName"
-        android:layout_width="200sp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
+        android:layout_weight="4"
         android:gravity="center"
         android:text="Transaction Name"
         android:textSize="16sp"
@@ -27,9 +26,23 @@
         android:id="@+id/tvTransactionPrice"
         android:layout_width="100sp"
         android:layout_height="wrap_content"
-        android:text="Price"
+        android:layout_weight="1"
         android:gravity="center"
+        android:text="Price"
         android:textColor="@android:color/darker_gray"
         android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_weight="1"
+        android:contentDescription="Delete transaction"
+        android:onClick="deleteTransaction"
+        android:drawableStart="@drawable/baseline_delete_24"
+        android:padding="8dp"
+        android:gravity="center_vertical|center_horizontal"
+        android:textColor="@android:color/transparent"
+        android:background="@android:color/holo_red_light" />
 
 </LinearLayout>

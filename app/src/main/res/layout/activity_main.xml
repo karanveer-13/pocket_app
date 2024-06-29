@@ -11,12 +11,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="99dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="191dp"
         android:ems="10"
         android:hint="Transaction name"
         android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/editTextNumberDecimal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,12 +22,11 @@
         android:id="@+id/editTextNumberDecimal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="17dp"
-        android:layout_marginBottom="41dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="45dp"
         android:ems="10"
         android:hint="Price"
         android:inputType="numberDecimal"
-        app:layout_constraintBottom_toTopOf="@+id/submitButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextText" />
 
@@ -37,45 +34,47 @@
         android:id="@+id/submitButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
-        android:layout_marginBottom="198dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="380dp"
+        android:layout_marginBottom="78dp"
         android:text="Add"
         app:layout_constraintBottom_toTopOf="@+id/progressBar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextNumberDecimal" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="221dp"
+        android:layout_marginBottom="205dp"
         android:max="100"
         android:progress="0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button3" />
+        app:layout_constraintTop_toBottomOf="@+id/submitButton" />
 
     <Button
         android:id="@+id/btnTransactionHistory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="41dp"
-        android:layout_marginEnd="30dp"
+        android:layout_marginTop="54dp"
+        android:layout_marginEnd="42dp"
         android:text="Transaction History"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextNumberDecimal" />
 
-    <Button
-        android:id="@+id/button3"
+    <EditText
+        android:id="@+id/editTextAllowance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="329dp"
-        android:layout_marginBottom="115dp"
-        android:text="Test"
-        app:layout_constraintBottom_toTopOf="@+id/progressBar"
-        app:layout_constraintEnd_toEndOf="@+id/submitButton"
-        app:layout_constraintStart_toEndOf="@+id/submitButton"
+        android:layout_marginTop="53dp"
+        android:ems="10"
+        android:hint="Set Allowance"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

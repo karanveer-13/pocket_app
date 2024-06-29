@@ -14,4 +14,9 @@ class TransactionRepository(private val transactionDao: TransactionDao) {
     fun getTransactionByName(searchString: String): Flow<List<Transaction>> {
         return transactionDao.getTransactionByName("%$searchString%")
     }
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun delete(transaction: Transaction) {
+        transactionDao.delete(transaction)
+    }
 }
