@@ -1,5 +1,6 @@
 package com.example.pocketmoney.database
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -31,5 +32,8 @@ interface TransactionDao {
 
     @Query("SELECT SUM(price) FROM `transaction`")
     fun getTotalTransactionPrice(): Flow<Double?>
+
+    @Query("SELECT * FROM `transaction` WHERE name LIKE :query")
+    fun searchTransactions(query: String): LiveData<List<Transaction>>
 
 }

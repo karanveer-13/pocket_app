@@ -16,11 +16,14 @@ class TransactionViewModel(private val repository: TransactionRepository) : View
     fun insert(transaction: Transaction) = viewModelScope.launch {
         repository.insert(transaction)
     }
+    fun delete(transaction: Transaction) = viewModelScope.launch {
+        repository.delete(transaction)
+    }
     fun getStudentByData(searchString: String): LiveData<List<Transaction>> {
         return repository.getTransactionByName(searchString).asLiveData()
     }
-    fun delete(transaction: Transaction) = viewModelScope.launch {
-        repository.delete(transaction)
+    fun searchTransactions(query: String): LiveData<List<Transaction>> {
+        return repository.searchTransactions(query)
     }
 }
 
