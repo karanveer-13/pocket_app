@@ -15,6 +15,10 @@ class TransactionRepository(
     val allExpenses: Flow<List<Expense>> = expenseDao.getAllExpenses()
     val allIncomes: Flow<List<Income>> = incomeDao.getAllIncomes()
 
+    fun getExpenses(): Flow<List<Expense>> = allExpenses
+
+    fun getIncomes(): Flow<List<Income>> = allIncomes
+
     fun getAllTransactionsCombined(): Flow<List<Any>> {
         return combine(
             allExpenses,
