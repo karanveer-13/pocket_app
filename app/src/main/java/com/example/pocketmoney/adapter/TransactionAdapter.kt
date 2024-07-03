@@ -1,22 +1,27 @@
-package com.example.pocketmoney.adapter
+package example.pocketmoney.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pocketmoney.R
-import com.example.pocketmoney.database.Transaction
+import com.example.pocketmoney.database.Expense
+import com.example.pocketmoney.database.Income
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
+class TransactionAdapter(private val onDeleteClickListener: (Any) -> Unit) :
+    ListAdapter<Any, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
-        val itemView = LayoutInflater.from(parent.context).inflate(R.layout.transaction_view, parent, false)
-        return TransactionViewHolder(itemView)
+        val itemView = LayoutInflater.from(parent.context)
+            .inflate(R.layout.transaction_view, parent, false)
+        return TransactionViewHolder(itemView, onDeleteClickListener)
     }
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
@@ -24,27 +29,47 @@ class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.Transacti
         holder.bind(transaction)
     }
 
-    class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        //private val tvID: TextView = itemView.findViewById(R.id.tvID)
+    inner class TransactionViewHolder(
+        itemView: View,
+        private val onDeleteClickListener: (Any) -> Unit
+    ) : RecyclerView.ViewHolder(itemView) {
         private val tvName: TextView = itemView.findViewById(R.id.tvTransactionName)
         private val tvPrice: TextView = itemView.findViewById(R.id.tvTransactionPrice)
+        private val btnDelete: Button = itemView.findViewById(R.id.btnDelete)
         private val tvDate: TextView = itemView.findViewById(R.id.tvTransactionDate)
 
-        fun bind(transaction: Transaction) {
+        fun bind(transaction: Any) {
             val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-            //tvID.text = transaction.transactionId.toString()
-            tvName.text = transaction.transactionName
-            tvPrice.text = transaction.transactionPrice.toString()
-            tvDate.text = dateFormat.format(transaction.date)
+            when (transaction) {
+                is Expense -> {
+                    tvName.text = transaction.source
+                    tvPrice.text = transaction.amount.toString()
+                    tvDate.text = dateFormat.format(transaction.date)
+                }
+                is Income -> {
+                    tvName.text = transaction.source
+                    tvPrice.text = transaction.amount.toString()
+                    tvDate.text = dateFormat.format(transaction.date)
+                }
+                else -> throw IllegalArgumentException("Unknown transaction type")
+            }
+            btnDelete.setOnClickListener {
+                onDeleteClickListener(transaction)
+            }
         }
     }
 
-    private class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
-        override fun areItemsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
-            return oldItem.transactionId == newItem.transactionId
+    private class TransactionDiffCallback : DiffUtil.ItemCallback<Any>() {
+        override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean {
+            return when {
+                oldItem is Expense && newItem is Expense -> oldItem.id == newItem.id
+                oldItem is Income && newItem is Income -> oldItem.id == newItem.id
+                else -> false
+            }
         }
 
-        override fun areContentsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
+        @SuppressLint("DiffUtilEquals")
+        override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean {
             return oldItem == newItem
         }
     }

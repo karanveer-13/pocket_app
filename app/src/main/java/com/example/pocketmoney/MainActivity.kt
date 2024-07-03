@@ -3,13 +3,14 @@ package com.example.pocketmoney
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
-import com.example.pocketmoney.database.Transaction
-import com.example.pocketmoney.database.TransactionDao
-import com.example.pocketmoney.database.TransactionRoomDatabase
+import com.example.pocketmoney.database.Expense
+import com.example.pocketmoney.database.ExpenseDao
+import com.example.pocketmoney.database.Income
+import com.example.pocketmoney.database.IncomeDao
+import com.example.pocketmoney.database.PocketMoneyDatabase
 import com.example.pocketmoney.databinding.ActivityMainBinding
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
@@ -19,7 +20,7 @@ import java.util.Date
 class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
-    lateinit var dao: TransactionDao
+    lateinit var dao: ExpenseDao
 
     private val sharedPrefs by lazy {
         getSharedPreferences("com.example.pocketmoney", MODE_PRIVATE)
@@ -32,11 +33,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         // Initialize the database and DAO
-        val database = TransactionRoomDatabase.getDatabase(this)
-        dao = database.transactionDao()
-
-        // Set click listener for submit button
-        binding.submitButton.setOnClickListener { submitPrice() }
+        val database = PocketMoneyDatabase.getDatabase(this)
+        dao = database.expenseDao()
 
         // Retrieve and set allowance
         val storedAllowance = getStoredAllowance()
@@ -48,38 +46,41 @@ class MainActivity : AppCompatActivity() {
         binding.editTextAllowance.setOnClickListener {
             val allowanceText = binding.editTextAllowance.text.toString()
             if (allowanceText.isNotEmpty()) {
-                val allowance = allowanceText.toDouble()
-                setStoredAllowance(allowance)
-                updateProgressBar()
-                Toast.makeText(this, "Allowance set to $allowance", Toast.LENGTH_SHORT).show()
+                try {
+                    val allowance = allowanceText.toDouble()
+                    setStoredAllowance(allowance)
+                    updateProgressBar()
+                    Toast.makeText(this, "Allowance set to $allowance", Toast.LENGTH_SHORT).show()
+                } catch (e: NumberFormatException) {
+                    Toast.makeText(this, "Invalid allowance value", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Toast.makeText(this, "Please enter a valid allowance", Toast.LENGTH_SHORT).show()
             }
         }
 
+
         // Update progress bar when app opens
         updateProgressBar()
 
-        // Handle Transaction History button click
+        // Handle submit button click
+        binding.submitButton.setOnClickListener {
+            val tname = binding.editTextText.text.toString()
+            val p = findViewById<EditText>(R.id.editTextNumberDecimal).text.toString()
+            val price = p.toDouble()
+            insertInDb(tname, price)
+        }
+        //Handle Transaction History button click
         binding.btnTransactionHistory.setOnClickListener {
-            val intent = Intent(this, TransactionPageActivity::class.java)
+            val intent = Intent(this@MainActivity, TransactionPageActivity::class.java)
             startActivity(intent)
         }
-    }
-
-
-    private fun submitPrice() {
-        val tname = binding.editTextText.text.toString() // You can modify this to take input for the name
-        var p = findViewById<EditText>(R.id.editTextNumberDecimal).text.toString()
-        var price = p.toDouble()
-        insertInDb(tname, price)
-        binding.editTextText.setText("")
     }
 
     private fun insertInDb(tname: String, price: Double) {
         val currentDateTime = Date()
         lifecycleScope.launch {
-            val item = Transaction(0, tname, price, currentDateTime)
+            val item = Expense(0, tname, price, currentDateTime)
             dao.insert(item)
             updateProgressBar()
         }
@@ -88,7 +89,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateProgressBar() {
         val allowance = getStoredAllowance() ?: 3000.0 // Default allowance if not set
         lifecycleScope.launch {
-            dao.getTotalTransactionPrice()
+            dao.getTotalExpenseAmount()
                 .map { total ->
                     total?.let { ((it / allowance) * 100).toInt() } ?: 0
                 }
@@ -99,11 +100,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setStoredAllowance(allowance: Double) {
-        with(sharedPrefs.edit()) {
-            putFloat("allowance", allowance.toFloat())
-            apply()
+        val database = PocketMoneyDatabase.getDatabase(this)
+        val incomeDao = database.incomeDao()
+
+        val currentDateTime = Date()
+        val income = Income(0, "Allowance", allowance, currentDateTime)
+
+        lifecycleScope.launch {
+            incomeDao.insert(income)
+            with(sharedPrefs.edit()) {
+                putFloat("allowance", allowance.toFloat())
+                apply()
+            }
+            updateProgressBar()
         }
     }
+
 
     private fun getStoredAllowance(): Double? {
         return if (sharedPrefs.contains("allowance")) {
