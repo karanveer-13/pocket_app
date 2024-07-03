@@ -16,17 +16,18 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.pocketmoney.adapter.TransactionAdapter
+import com.example.pocketmoney.MainActivity
+import com.example.pocketmoney.R
 import com.example.pocketmoney.application.TransactionApplication
 import com.example.pocketmoney.databinding.ActivityTransactionPageBinding
 import com.example.pocketmoney.viewmodel.TransactionViewModel
-import com.example.pocketmoney.viewmodel.TransactionViewModelFactory
+import example.pocketmoney.adapter.TransactionAdapter
 
 class TransactionPageActivity : AppCompatActivity() {
     lateinit var binding: ActivityTransactionPageBinding
     private lateinit var adapter: TransactionAdapter
     private val transactionViewModel: TransactionViewModel by viewModels {
-        TransactionViewModelFactory((application as TransactionApplication).repository)
+        TransactionViewModel.TransactionViewModelFactory((application as TransactionApplication).repository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +35,7 @@ class TransactionPageActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_transaction_page)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.black))
 
         setSupportActionBar(toolbar)
@@ -51,14 +52,15 @@ class TransactionPageActivity : AppCompatActivity() {
 
         adapter = TransactionAdapter { transaction ->
             transactionViewModel.delete(transaction)
-            Toast.makeText(this, "Deleted transaction: ${transaction.transactionName}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Deleted transaction", Toast.LENGTH_SHORT).show()
         }
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        transactionViewModel.allStudent.observe(this) { transactions ->
+        transactionViewModel.allTransactions.observe(this) { transactions ->
             transactions?.let { adapter.submitList(it) }
         }
+
 
         etSearchTransaction.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
