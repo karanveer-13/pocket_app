@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.Toast
+import android.widget.ToggleButton
 import androidx.lifecycle.lifecycleScope
 import com.example.pocketmoney.database.Expense
 import com.example.pocketmoney.database.ExpenseDao
@@ -20,7 +21,8 @@ import java.util.Date
 class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
-    lateinit var dao: ExpenseDao
+    lateinit var expenseDao: ExpenseDao
+    lateinit var incomeDao: IncomeDao
 
     private val sharedPrefs by lazy {
         getSharedPreferences("com.example.pocketmoney", MODE_PRIVATE)
@@ -32,9 +34,10 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        // Initialize the database and DAO
+        // Initialize the database and DAOs
         val database = PocketMoneyDatabase.getDatabase(this)
-        dao = database.expenseDao()
+        expenseDao = database.expenseDao()
+        incomeDao = database.incomeDao()
 
         // Retrieve and set allowance
         val storedAllowance = getStoredAllowance()
@@ -59,7 +62,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         // Update progress bar when app opens
         updateProgressBar()
 
@@ -67,21 +69,38 @@ class MainActivity : AppCompatActivity() {
         binding.submitButton.setOnClickListener {
             val tname = binding.editTextText.text.toString()
             val p = findViewById<EditText>(R.id.editTextNumberDecimal).text.toString()
-            val price = p.toDouble()
-            insertInDb(tname, price)
+            if (p.isNotEmpty()) {
+                try {
+                    val price = p.toDouble()
+                    val isIncome = findViewById<ToggleButton>(R.id.toggleButton).isChecked
+                    insertInDb(tname, price, isIncome)
+                } catch (e: NumberFormatException) {
+                    Toast.makeText(this, "Invalid price value", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "Please enter a valid price", Toast.LENGTH_SHORT).show()
+            }
         }
-        //Handle Transaction History button click
+
+        // Handle Transaction History button click
         binding.btnTransactionHistory.setOnClickListener {
             val intent = Intent(this@MainActivity, TransactionPageActivity::class.java)
             startActivity(intent)
         }
     }
 
-    private fun insertInDb(tname: String, price: Double) {
+    private fun insertInDb(tname: String, amount: Double, isIncome: Boolean) {
         val currentDateTime = Date()
         lifecycleScope.launch {
-            val item = Expense(0, tname, price, currentDateTime)
-            dao.insert(item)
+            if (isIncome) {
+                val income = Income(0, tname, amount, currentDateTime)
+                incomeDao.insert(income)
+                Toast.makeText(this@MainActivity, "Income added: $amount", Toast.LENGTH_SHORT).show()
+            } else {
+                val expense = Expense(0, tname, amount, currentDateTime)
+                expenseDao.insert(expense)
+                Toast.makeText(this@MainActivity, "Expense added: $amount", Toast.LENGTH_SHORT).show()
+            }
             updateProgressBar()
         }
     }
@@ -89,7 +108,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateProgressBar() {
         val allowance = getStoredAllowance() ?: 3000.0 // Default allowance if not set
         lifecycleScope.launch {
-            dao.getTotalExpenseAmount()
+            expenseDao.getTotalExpenseAmount()
                 .map { total ->
                     total?.let { ((it / allowance) * 100).toInt() } ?: 0
                 }
@@ -100,9 +119,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setStoredAllowance(allowance: Double) {
-        val database = PocketMoneyDatabase.getDatabase(this)
-        val incomeDao = database.incomeDao()
-
         val currentDateTime = Date()
         val income = Income(0, "Allowance", allowance, currentDateTime)
 
@@ -115,7 +131,6 @@ class MainActivity : AppCompatActivity() {
             updateProgressBar()
         }
     }
-
 
     private fun getStoredAllowance(): Double? {
         return if (sharedPrefs.contains("allowance")) {
