@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
     private val sharedPrefs by lazy {
         getSharedPreferences("com.example.pocketmoney", MODE_PRIVATE)
     }
-    private var currentInput: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,20 +34,6 @@ class MainActivity : AppCompatActivity() {
         // Initialize the database and DAO
         val database = TransactionRoomDatabase.getDatabase(this)
         dao = database.transactionDao()
-
-        val buttonIds = listOf(
-            R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3,
-            R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7,
-            R.id.btn8, R.id.btn9, R.id.btnDecimal
-        )
-
-        // Set click listeners for number buttons
-        for (id in buttonIds) {
-            findViewById<Button>(id).setOnClickListener { appendToInput((it as Button).text.toString()) }
-        }
-
-        // Set click listener for clear button
-        findViewById<Button>(R.id.btnClear).setOnClickListener { clearInput() }
 
         // Set click listener for submit button
         binding.submitButton.setOnClickListener { submitPrice() }
@@ -82,21 +67,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun appendToInput(value: String) {
-        currentInput += value
-        binding.editTextNumberDecimal.setText(currentInput)
-    }
-
-    private fun clearInput() {
-        currentInput = ""
-        binding.editTextNumberDecimal.setText(currentInput)
-    }
 
     private fun submitPrice() {
         val tname = binding.editTextText.text.toString() // You can modify this to take input for the name
-        val price = currentInput.toDoubleOrNull() ?: 0.0
+        var p = findViewById<EditText>(R.id.editTextNumberDecimal).text.toString()
+        var price = p.toDouble()
         insertInDb(tname, price)
-        clearInput()
         binding.editTextText.setText("")
     }
 
