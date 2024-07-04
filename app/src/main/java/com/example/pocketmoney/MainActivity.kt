@@ -14,6 +14,7 @@ import com.example.pocketmoney.database.IncomeDao
 import com.example.pocketmoney.database.PocketMoneyDatabase
 import com.example.pocketmoney.databinding.ActivityMainBinding
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -95,26 +96,40 @@ class MainActivity : AppCompatActivity() {
             if (isIncome) {
                 val income = Income(0, tname, amount, currentDateTime)
                 incomeDao.insert(income)
+                adjustAllowance(amount) // Increase allowance
                 Toast.makeText(this@MainActivity, "Income added: $amount", Toast.LENGTH_SHORT).show()
             } else {
                 val expense = Expense(0, tname, amount, currentDateTime)
                 expenseDao.insert(expense)
+                adjustAllowance(-amount) // Decrease allowance
                 Toast.makeText(this@MainActivity, "Expense added: $amount", Toast.LENGTH_SHORT).show()
             }
             updateProgressBar()
         }
     }
 
+    private fun adjustAllowance(amount: Double) {
+        val currentAllowance = getStoredAllowance() ?: 0.0 // Default allowance if not set
+        val newAllowance = currentAllowance + amount
+        setStoredAllowance(newAllowance)
+    }
+
     private fun updateProgressBar() {
-        val allowance = getStoredAllowance() ?: 3000.0 // Default allowance if not set
+        val allowance = getStoredAllowance() ?: 0.0 // Default allowance if not set
         lifecycleScope.launch {
-            expenseDao.getTotalExpenseAmount()
-                .map { total ->
-                    total?.let { ((it / allowance) * 100).toInt() } ?: 0
-                }
-                .collect { progress ->
-                    binding.progressBar.progress = progress
-                }
+            combine(
+                expenseDao.getTotalExpenseAmount(),
+                incomeDao.getTotalIncome()
+            ) { totalExpense, totalIncome ->
+                totalExpense?.let {
+                    totalIncome?.let {
+                        ((totalExpense / (totalIncome + allowance)) * 100).toInt()
+                    } ?: ((totalExpense / allowance) * 100).toInt()
+                } ?: 0
+            }.collect { progress ->
+                binding.progressBar.progress = progress
+                binding.editTextAllowance.setText(allowance.toString()) // Update the allowance text
+            }
         }
     }
 
@@ -123,7 +138,6 @@ class MainActivity : AppCompatActivity() {
         val income = Income(0, "Allowance", allowance, currentDateTime)
 
         lifecycleScope.launch {
-            incomeDao.insert(income)
             with(sharedPrefs.edit()) {
                 putFloat("allowance", allowance.toFloat())
                 apply()
@@ -134,7 +148,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getStoredAllowance(): Double? {
         return if (sharedPrefs.contains("allowance")) {
-            sharedPrefs.getFloat("allowance", 3000.0f).toDouble()
+            sharedPrefs.getFloat("allowance", 0.0f).toDouble()
         } else {
             null
         }

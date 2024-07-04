@@ -57,7 +57,7 @@ abstract class PocketMoneyDatabase : RoomDatabase() {
                 Income(0, "Interest", 200.0, dateFormat.parse("2024-07-03") ?: Date())
             )
             for (income in dummyIncomes) {
-                incomeDao.insert(income)
+//                incomeDao.insert(income)
             }
         }
     }
