@@ -21,7 +21,8 @@ interface ExpenseDao {
     @Delete
     suspend fun delete(expense: Expense)
 
-    //Made changes to the getTransactionByName (gettransaction) function to get based on the name instead of the id
+    @Query("SELECT * FROM `expense` WHERE category_id = :categoryId ORDER BY date ASC")
+    fun getExpensesByCategory(categoryId: Int): Flow<List<Expense>>
 
     @Query("SELECT * from `expense` WHERE source = :searchString")
     fun getExpenseByName(searchString: String): Flow<List<Expense>>

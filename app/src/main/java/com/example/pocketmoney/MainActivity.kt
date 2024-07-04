@@ -105,20 +105,30 @@ class MainActivity : AppCompatActivity() {
     private fun insertInDb(tname: String, amount: Double, isIncome: Boolean) {
         val currentDateTime = Date()
         lifecycleScope.launch {
-            if (isIncome) {
-                val income = Income(0, tname, amount, currentDateTime)
-                incomeDao.insert(income)
-                adjustAllowance(amount) // Increase allowance
-                Toast.makeText(this@MainActivity, "Income added: $amount", Toast.LENGTH_SHORT).show()
-            } else {
-                val expense = Expense(0, tname, amount, currentDateTime)
-                expenseDao.insert(expense)
-                adjustAllowance(-amount) // Decrease allowance
-                Toast.makeText(this@MainActivity, "Expense added: $amount", Toast.LENGTH_SHORT).show()
+            try {
+                if (isIncome) {
+                    // Example assuming Income has a categoryId foreign key
+                    val categoryId = 1// Replace with your actual categoryId logic
+                    val income = Income(0, tname, amount, currentDateTime, categoryId)
+                    incomeDao.insert(income)
+                    adjustAllowance(amount) // Increase allowance
+                    Toast.makeText(this@MainActivity, "Income added: $amount", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Example assuming Expense has a categoryId foreign key
+                    val categoryId = 2 // Replace with your actual categoryId logic
+                    val expense = Expense(0, tname, amount, currentDateTime, categoryId)
+                    expenseDao.insert(expense)
+                    adjustAllowance(-amount) // Decrease allowance
+                    Toast.makeText(this@MainActivity, "Expense added: $amount", Toast.LENGTH_SHORT).show()
+                }
+                updateProgressBar()
+            } catch (e: Exception) {
+                Log.e("InsertError", "Error inserting transaction: ${e.message}")
+                Toast.makeText(this@MainActivity, "Failed to add transaction", Toast.LENGTH_SHORT).show()
             }
-            updateProgressBar()
         }
     }
+
 
     private fun adjustAllowance(amount: Double) {
         val currentAllowance = getStoredAllowance() ?: 0.0 // Default allowance if not set
@@ -147,7 +157,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setStoredAllowance(allowance: Double) {
         val currentDateTime = Date()
-        val income = Income(0, "Allowance", allowance, currentDateTime)
+        val income = Income(0, "Allowance", allowance, currentDateTime,1)
 
         lifecycleScope.launch {
             with(sharedPrefs.edit()) {

@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
+//TODO remove this Room DB...the PocketMoneyDatabase is the the one we are currently using instead of this
+
 @Database(entities = [Transaction::class], version = 3, exportSchema = false)
 @TypeConverters(Converter::class)
 

@@ -21,6 +21,9 @@ interface IncomeDao {
     @Delete
     suspend fun delete(income: Income)
 
+    @Query("SELECT * FROM income WHERE category_id = :categoryId ORDER BY date ASC")
+    fun getIncomesByCategory(categoryId: Int): Flow<List<Income>>
+
     @Query("SELECT * FROM income WHERE source = :searchString")
     fun getIncomeByName(searchString: String): Flow<List<Income>>
 

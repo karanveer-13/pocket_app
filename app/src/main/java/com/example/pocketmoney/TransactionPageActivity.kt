@@ -44,7 +44,6 @@ class TransactionPageActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.rvTransactionHistory)
         val etSearchTransaction = findViewById<EditText>(R.id.etSearchTransaction)
         val rgFilter = findViewById<RadioGroup>(R.id.rgFilter)
-        //insertDummyIncomeData()
         toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.black))
 
         setSupportActionBar(toolbar)
@@ -57,15 +56,20 @@ class TransactionPageActivity : AppCompatActivity() {
             insets
         }
 
-        adapter = TransactionAdapter { transaction ->
-            transactionViewModel.delete(transaction)
-            Toast.makeText(this, "Deleted transaction", Toast.LENGTH_SHORT).show()
-        }
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        transactionViewModel.allCategories.observe(this) { categoryMap ->
+            adapter = TransactionAdapter(
+                onDeleteClickListener = { transaction ->
+                    transactionViewModel.delete(transaction)
+                    Toast.makeText(this, "Deleted transaction", Toast.LENGTH_SHORT).show()
+                },
+                categoryMap = categoryMap
+            )
+            recyclerView.adapter = adapter
+            recyclerView.layoutManager = LinearLayoutManager(this)
 
-        transactionViewModel.allTransactions.observe(this) { transactions ->
-            transactions?.let { adapter.submitList(it) }
+            transactionViewModel.allTransactions.observe(this) { transactions ->
+                transactions?.let { adapter.submitList(it) }
+            }
         }
 
         rgFilter.setOnCheckedChangeListener { group, checkedId ->
@@ -93,6 +97,7 @@ class TransactionPageActivity : AppCompatActivity() {
             }
         })
     }
+
     private fun showAllTransactions() {
         transactionViewModel.allTransactions.observe(this) { transactions ->
             transactions?.let { adapter.submitList(it) }
@@ -110,21 +115,6 @@ class TransactionPageActivity : AppCompatActivity() {
             expenses?.let { adapter.submitList(it) }
         }
     }
-
-    // Function to insert dummy income data into the database
-    /*private fun insertDummyIncomeData() {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val dummyIncomes = listOf(
-            Income(0, "Salary", 5000.0, dateFormat.parse("2024-07-01") ?: Date()),
-            Income(0, "Freelancing", 1500.0, dateFormat.parse("2024-07-02") ?: Date()),
-            Income(0, "Interest", 200.0, dateFormat.parse("2024-07-03") ?: Date())
-        )
-
-        for (income in dummyIncomes) {
-            transactionViewModel.insert(income)
-        }
-    }*/
-
 
     private fun searchTransactions(query: String) {
         transactionViewModel.searchTransactions(query).observe(this) { transactions ->

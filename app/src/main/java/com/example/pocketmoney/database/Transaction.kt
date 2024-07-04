@@ -7,6 +7,9 @@ import androidx.room.PrimaryKey
 import java.time.LocalDateTime
 import java.util.Date
 
+//TODO remove this entity...we are not using this anymore instead of this only the expense entity is there
+
+
 @Entity  //create table transaction(id integer,name,price,date)
 data class Transaction (
     @PrimaryKey(autoGenerate = true)

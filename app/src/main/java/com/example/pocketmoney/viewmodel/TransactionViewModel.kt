@@ -1,10 +1,12 @@
 package com.example.pocketmoney.viewmodel
 
 import androidx.lifecycle.*
+import com.example.pocketmoney.database.Category
 import com.example.pocketmoney.database.Expense
 import com.example.pocketmoney.database.Income
 import com.example.pocketmoney.database.TransactionRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class TransactionViewModel(private val repository: TransactionRepository) : ViewModel() {
@@ -12,6 +14,10 @@ class TransactionViewModel(private val repository: TransactionRepository) : View
     val allTransactions: LiveData<List<Any>> = repository.getAllTransactionsCombined().asLiveData()
     val allIncomes: LiveData<List<Income>> = repository.getIncomes().asLiveData()
     val allExpenses: LiveData<List<Expense>> = repository.getExpenses().asLiveData()
+    val allCategories: LiveData<Map<Int, Category>> = liveData {
+        val categories = repository.getAllCategories().first()
+        emit(categories.associateBy { it.id })
+    }
 
     fun insert(transaction: Any) {
         viewModelScope.launch(Dispatchers.IO) {
