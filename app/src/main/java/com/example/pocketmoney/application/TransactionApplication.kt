@@ -42,7 +42,7 @@ class TransactionApplication : Application() {
     private fun insertInitialCategories() {
         runBlocking {
             val categories = categoryDao.getAllCategories().first()
-            if (categories.size!=2) {
+            if (categories.isEmpty()) {
                 categoryDao.insert(Category(1, "Allowance"))
                 categoryDao.insert(Category(2, "Travel"))
                 categoryDao.insert(Category(3, "Dining"))
