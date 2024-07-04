@@ -3,6 +3,7 @@ package com.example.pocketmoney
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.EditText
 import android.widget.Toast
 import android.widget.ToggleButton
@@ -13,6 +14,7 @@ import com.example.pocketmoney.database.Income
 import com.example.pocketmoney.database.IncomeDao
 import com.example.pocketmoney.database.PocketMoneyDatabase
 import com.example.pocketmoney.databinding.ActivityMainBinding
+import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -65,6 +67,17 @@ class MainActivity : AppCompatActivity() {
         // Update progress bar when app opens
         updateProgressBar()
 
+        val switchTransaction = findViewById<SwitchMaterial>(R.id.switchTransaction)
+        switchTransaction.text = if (switchTransaction.isChecked) "Income" else "Expense"
+        switchTransaction.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                Log.d("Switch", "Income")
+                switchTransaction.text = "Income"
+            } else {
+                switchTransaction.text = "Expense"
+            }
+        }
+
         // Handle submit button click
         binding.submitButton.setOnClickListener {
             val tname = binding.editTextText.text.toString()
@@ -72,8 +85,7 @@ class MainActivity : AppCompatActivity() {
             if (p.isNotEmpty()) {
                 try {
                     val price = p.toDouble()
-                    val isIncome = findViewById<ToggleButton>(R.id.toggleButton).isChecked
-                    insertInDb(tname, price, isIncome)
+                    insertInDb(tname, price, switchTransaction.isChecked)
                 } catch (e: NumberFormatException) {
                     Toast.makeText(this, "Invalid price value", Toast.LENGTH_SHORT).show()
                 }
