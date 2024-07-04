@@ -1,35 +1,40 @@
 package com.example.pocketmoney
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.Toast
-import android.widget.ToggleButton
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.pocketmoney.database.Expense
-import com.example.pocketmoney.database.ExpenseDao
-import com.example.pocketmoney.database.Income
-import com.example.pocketmoney.database.IncomeDao
-import com.example.pocketmoney.database.PocketMoneyDatabase
+import com.example.pocketmoney.database.*
 import com.example.pocketmoney.databinding.ActivityMainBinding
 import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.util.Date
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
     lateinit var expenseDao: ExpenseDao
     lateinit var incomeDao: IncomeDao
+    lateinit var categoryDao: CategoryDao
 
     private val sharedPrefs by lazy {
         getSharedPreferences("com.example.pocketmoney", MODE_PRIVATE)
     }
+
+    private lateinit var categorySpinner: Spinner
+    private lateinit var categoryAdapter: ArrayAdapter<String>
+    private var categoryList = mutableListOf<String>()
+    private var categoryMap = mutableMapOf<String, Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,32 +46,34 @@ class MainActivity : AppCompatActivity() {
         val database = PocketMoneyDatabase.getDatabase(this)
         expenseDao = database.expenseDao()
         incomeDao = database.incomeDao()
+        categoryDao = database.categoryDao()
 
-        // Retrieve and set allowance
-        val storedAllowance = getStoredAllowance()
-        if (storedAllowance != null) {
-            binding.editTextAllowance.setText(storedAllowance.toString())
-        }
+        // Initialize Spinner and its adapter
+        categorySpinner = findViewById(R.id.spinnerCategory)
+        categoryAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categoryList)
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = categoryAdapter
 
-        // Set allowance button click handler
-        binding.editTextAllowance.setOnClickListener {
-            val allowanceText = binding.editTextAllowance.text.toString()
-            if (allowanceText.isNotEmpty()) {
-                try {
-                    val allowance = allowanceText.toDouble()
-                    setStoredAllowance(allowance)
-                    updateProgressBar()
-                    Toast.makeText(this, "Allowance set to $allowance", Toast.LENGTH_SHORT).show()
-                } catch (e: NumberFormatException) {
-                    Toast.makeText(this, "Invalid allowance value", Toast.LENGTH_SHORT).show()
+        // Retrieve categories from database
+        loadCategories()
+
+        // Set listener for Spinner selection
+        categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selectedCategory = parent.getItemAtPosition(position).toString()
+                if (selectedCategory == "Add Category") {
+                    showAddCategoryDialog()
                 }
-            } else {
-                Toast.makeText(this, "Please enter a valid allowance", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // Do nothing
             }
         }
 
-        // Update progress bar when app opens
+        // Update progress bar and balance when app opens
         updateProgressBar()
+        updateBalance()
 
         val switchTransaction = findViewById<SwitchMaterial>(R.id.switchTransaction)
         switchTransaction.text = if (switchTransaction.isChecked) "Income" else "Expense"
@@ -83,10 +90,12 @@ class MainActivity : AppCompatActivity() {
         binding.submitButton.setOnClickListener {
             val tname = binding.editTextText.text.toString()
             val p = findViewById<EditText>(R.id.editTextNumberDecimal).text.toString()
+            val selectedCategory = categorySpinner.selectedItem.toString()
+            val categoryId = categoryMap[selectedCategory] ?: 0
             if (p.isNotEmpty()) {
                 try {
                     val price = p.toDouble()
-                    insertInDb(tname, price, switchTransaction.isChecked)
+                    insertInDb(tname, price, switchTransaction.isChecked, categoryId)
                 } catch (e: NumberFormatException) {
                     Toast.makeText(this, "Invalid price value", Toast.LENGTH_SHORT).show()
                 }
@@ -102,26 +111,69 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun insertInDb(tname: String, amount: Double, isIncome: Boolean) {
+    private fun loadCategories() {
+        lifecycleScope.launch {
+            categoryDao.getAllCategories().collect { categories ->
+                categoryList.clear()
+                categoryMap.clear()
+                categories.forEach {
+                    categoryList.add(it.name)
+                    categoryMap[it.name] = it.id
+                }
+                categoryList.add("Add Category") // Add option to add a new category
+                categoryAdapter.notifyDataSetChanged()
+            }
+        }
+    }
+
+    private fun showAddCategoryDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Add Category")
+
+        val input = EditText(this)
+        input.hint = "Category Name"
+        builder.setView(input)
+
+        builder.setPositiveButton("Add") { dialog, _ ->
+            val categoryName = input.text.toString().trim()
+            if (categoryName.isNotEmpty()) {
+                addCategory(categoryName)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(this, "Category name cannot be empty", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.cancel()
+        }
+
+        builder.show()
+    }
+
+    private fun addCategory(name: String) {
+        lifecycleScope.launch {
+            val newCategory = Category(name = name)
+            categoryDao.insert(newCategory)
+            loadCategories() // Refresh categories
+        }
+    }
+
+    private fun insertInDb(tname: String, amount: Double, isIncome: Boolean, categoryId: Int) {
         val currentDateTime = Date()
         lifecycleScope.launch {
             try {
                 if (isIncome) {
-                    // Example assuming Income has a categoryId foreign key
-                    val categoryId = 1// Replace with your actual categoryId logic
                     val income = Income(0, tname, amount, currentDateTime, categoryId)
                     incomeDao.insert(income)
-                    adjustAllowance(amount) // Increase allowance
                     Toast.makeText(this@MainActivity, "Income added: $amount", Toast.LENGTH_SHORT).show()
                 } else {
-                    // Example assuming Expense has a categoryId foreign key
-                    val categoryId = 2 // Replace with your actual categoryId logic
                     val expense = Expense(0, tname, amount, currentDateTime, categoryId)
                     expenseDao.insert(expense)
-                    adjustAllowance(-amount) // Decrease allowance
                     Toast.makeText(this@MainActivity, "Expense added: $amount", Toast.LENGTH_SHORT).show()
                 }
                 updateProgressBar()
+                updateBalance()
             } catch (e: Exception) {
                 Log.e("InsertError", "Error inserting transaction: ${e.message}")
                 Toast.makeText(this@MainActivity, "Failed to add transaction", Toast.LENGTH_SHORT).show()
@@ -129,50 +181,44 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun adjustAllowance(amount: Double) {
-        val currentAllowance = getStoredAllowance() ?: 0.0 // Default allowance if not set
-        val newAllowance = currentAllowance + amount
-        setStoredAllowance(newAllowance)
-    }
-
-    private fun updateProgressBar() {
-        val allowance = getStoredAllowance() ?: 0.0 // Default allowance if not set
+    private fun calculateCurrentBalance(onBalanceCalculated: (Double) -> Unit) {
         lifecycleScope.launch {
             combine(
                 expenseDao.getTotalExpenseAmount(),
                 incomeDao.getTotalIncome()
             ) { totalExpense, totalIncome ->
-                totalExpense?.let {
-                    totalIncome?.let {
-                        ((totalExpense / (totalIncome + allowance)) * 100).toInt()
-                    } ?: ((totalExpense / allowance) * 100).toInt()
-                } ?: 0
+                val totalExpenses = totalExpense ?: 0.0
+                val totalIncomes = totalIncome ?: 0.0
+                val currentBalance = totalIncomes - totalExpenses
+                currentBalance
+            }.collect { balance ->
+                onBalanceCalculated(balance)
+            }
+        }
+    }
+
+    private fun updateProgressBar() {
+        lifecycleScope.launch {
+            combine(
+                expenseDao.getTotalExpenseAmount(),
+                incomeDao.getTotalIncome()
+            ) { totalExpense, totalIncome ->
+                val totalExpenses = totalExpense ?: 0.0
+                val totalIncomes = totalIncome ?: 0.0
+                if (totalIncomes > 0) {
+                    ((totalExpenses / totalIncomes) * 100).toInt()
+                } else {
+                    0
+                }
             }.collect { progress ->
                 binding.progressBar.progress = progress
-                binding.editTextAllowance.setText(allowance.toString()) // Update the allowance text
             }
         }
     }
 
-    private fun setStoredAllowance(allowance: Double) {
-        val currentDateTime = Date()
-        val income = Income(0, "Allowance", allowance, currentDateTime,1)
-
-        lifecycleScope.launch {
-            with(sharedPrefs.edit()) {
-                putFloat("allowance", allowance.toFloat())
-                apply()
-            }
-            updateProgressBar()
-        }
-    }
-
-    private fun getStoredAllowance(): Double? {
-        return if (sharedPrefs.contains("allowance")) {
-            sharedPrefs.getFloat("allowance", 0.0f).toDouble()
-        } else {
-            null
+    private fun updateBalance() {
+        calculateCurrentBalance { balance ->
+            binding.textViewBalance.text = balance.toString() // Update the balance text
         }
     }
 }
