@@ -43,8 +43,10 @@ class TransactionApplication : Application() {
         runBlocking {
             val categories = categoryDao.getAllCategories().first()
             if (categories.size!=2) {
-                categoryDao.insert(Category(1, "Income"))
-                categoryDao.insert(Category(2, "Expense"))
+                categoryDao.insert(Category(1, "Allowance"))
+                categoryDao.insert(Category(2, "Travel"))
+                categoryDao.insert(Category(3, "Dining"))
+                categoryDao.insert(Category(4, "Gifts"))
             }
         }
     }
