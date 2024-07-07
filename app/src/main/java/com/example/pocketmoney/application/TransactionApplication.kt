@@ -41,8 +41,8 @@ class TransactionApplication : Application() {
 
     private fun insertInitialCategories() {
         runBlocking {
-            val categories = categoryDao.getAllCategories().first()
-            if (categories.isEmpty()) {
+//            categoryDao.deleteAllCategories()
+            if(categoryDao.getAllCategories().first().isEmpty()) {
                 categoryDao.insert(Category(1, "Allowance"))
                 categoryDao.insert(Category(2, "Travel"))
                 categoryDao.insert(Category(3, "Dining"))

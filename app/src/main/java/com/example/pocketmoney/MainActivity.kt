@@ -221,4 +221,9 @@ class MainActivity : AppCompatActivity() {
             binding.textViewBalance.text = balance.toString() // Update the balance text
         }
     }
+
+    fun showStats(view: View) {
+        val intent = Intent(this, StatsActivity::class.java)
+        startActivity(intent)
+    }
 }
