@@ -16,11 +16,10 @@ import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
-import java.text.SimpleDateFormat
-import java.util.*
+import com.github.mikephil.charting.formatter.PercentFormatter
 
-//TODO connect the rv with the database and add toggle for switching between the income and expense charts
 
 class StatsActivity : AppCompatActivity() {
 
@@ -49,8 +48,9 @@ class StatsActivity : AppCompatActivity() {
 
         val application = applicationContext as TransactionApplication
         val repository = application.repository
-        viewModel = ViewModelProvider(this, TransactionViewModel.TransactionViewModelFactory(repository))
-            .get(TransactionViewModel::class.java)
+        viewModel =
+            ViewModelProvider(this, TransactionViewModel.TransactionViewModelFactory(repository))
+                .get(TransactionViewModel::class.java)
 
         pieChart = findViewById(R.id.pieChart)
         barChart = findViewById(R.id.barChart)
@@ -59,11 +59,13 @@ class StatsActivity : AppCompatActivity() {
         setupBarChart()
 
         // Example of toggling between income and expense (implement your actual toggle logic)
-//        val toggleIncomeExpense = findViewById<ToggleButton>(R.id.toggleIncomeExpense)
-//        toggleIncomeExpense.setOnCheckedChangeListener { _, isChecked ->
-//            isIncomeSelected = isChecked
-//            updateCharts()
-//        }
+        val toggleIncomeExpense =
+            findViewById<android.widget.ToggleButton>(R.id.toggleIncomeExpense)
+        toggleIncomeExpense.setOnCheckedChangeListener { _, isChecked ->
+            isIncomeSelected = isChecked
+            updateCharts()
+        }
+        updateCharts()
     }
 
     private fun updateCharts() {
@@ -109,10 +111,10 @@ class StatsActivity : AppCompatActivity() {
                     PieEntry(amount, categoryName)
                 }
 
-                val pieDataSet = PieDataSet(pieEntries, "Expense Categories")
-
+                val pieDataSet = PieDataSet(pieEntries, " ")
                 pieDataSet.colors = allColors
                 val pieData = PieData(pieDataSet)
+                pieData.setValueFormatter(PercentFormatter(pieChart)) // Add percentage formatter
                 pieChart.data = pieData
                 pieChart.invalidate()
 
@@ -123,9 +125,20 @@ class StatsActivity : AppCompatActivity() {
                 pieChart.setCenterTextSize(16f)
                 pieChart.holeRadius = 45f
                 pieChart.transparentCircleRadius = 50f
+
+                val legend = pieChart.legend
+                legend.isEnabled = true
+                legend.verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
+                legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+                legend.orientation = Legend.LegendOrientation.HORIZONTAL
+                legend.setDrawInside(false)
+                legend.textSize = 12f
+                legend.isWordWrapEnabled = true // Enable word wrap for legend labels
+                legend.maxSizePercent = 0.9f // Adjust max size percentage as needed
             })
         })
     }
+
 
     private fun setupBarChartForExpense() {
         viewModel.allExpenses.observe(this, { expenses ->
@@ -142,12 +155,13 @@ class StatsActivity : AppCompatActivity() {
                 val categoryEntries = categories.entries.toList()
 
                 // Now use mapIndexed on the list
-                val barEntries = categoryEntries.mapIndexed { index: Int, entry: Map.Entry<Int, Float> ->
-                    val categoryName = categoryMap[entry.key]?.name ?: "Unknown"
-                    BarEntry(index.toFloat(), entry.value, categoryName)
-                }
+                val barEntries =
+                    categoryEntries.mapIndexed { index: Int, entry: Map.Entry<Int, Float> ->
+                        val categoryName = categoryMap[entry.key]?.name ?: "Unknown"
+                        BarEntry(index.toFloat(), entry.value, categoryName)
+                    }
 
-                val barDataSet = BarDataSet(barEntries, "Expense Categories")
+                val barDataSet = BarDataSet(barEntries, "Categories")
                 barDataSet.colors = allColors
                 val barData = BarData(barDataSet)
                 barChart.data = barData
@@ -157,15 +171,30 @@ class StatsActivity : AppCompatActivity() {
                 barChart.setDrawValueAboveBar(true)
                 barChart.setFitBars(true)
 
-                val legend: Legend = barChart.legend
+                barChart.setVisibleXRange(0f, 5f)
+                barChart.setPinchZoom(true)
+                barChart.isDoubleTapToZoomEnabled = false
+
+                val legend = barChart.legend
                 legend.isEnabled = true
                 legend.verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
                 legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
                 legend.orientation = Legend.LegendOrientation.HORIZONTAL
                 legend.setDrawInside(false)
+                legend.textSize = 12f
+
+                barChart.xAxis.apply {
+                    granularity = 1f
+                    setDrawGridLines(false)
+                    setLabelCount(barEntries.size, false)
+                    valueFormatter = IndexAxisValueFormatter(categoryEntries.map {
+                        categoryMap[it.key]?.name ?: "Unknown"
+                    })
+                }
             })
         })
     }
+
 
     private fun setupPieChartForIncome() {
         viewModel.allIncomes.observe(this, { incomes ->
@@ -184,9 +213,10 @@ class StatsActivity : AppCompatActivity() {
                     PieEntry(amount, categoryName)
                 }
 
-                val pieDataSet = PieDataSet(pieEntries, "Income Categories")
+                val pieDataSet = PieDataSet(pieEntries, " ")
                 pieDataSet.colors = allColors
                 val pieData = PieData(pieDataSet)
+                pieData.setValueFormatter(PercentFormatter(pieChart)) // Add percentage formatter
                 pieChart.data = pieData
                 pieChart.invalidate()
 
@@ -198,10 +228,19 @@ class StatsActivity : AppCompatActivity() {
                 pieChart.holeRadius = 45f
                 pieChart.transparentCircleRadius = 50f
 
-
+                val legend = pieChart.legend
+                legend.isEnabled = true
+                legend.verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
+                legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+                legend.orientation = Legend.LegendOrientation.HORIZONTAL
+                legend.setDrawInside(false)
+                legend.textSize = 12f
+                legend.isWordWrapEnabled = true // Enable word wrap for legend labels
+                legend.maxSizePercent = 0.9f // Adjust max size percentage as needed
             })
         })
     }
+
 
     private fun setupBarChartForIncome() {
         viewModel.allIncomes.observe(this, { incomes ->
@@ -218,12 +257,13 @@ class StatsActivity : AppCompatActivity() {
                 val categoryEntries = categories.entries.toList()
 
                 // Now use mapIndexed on the list
-                val barEntries = categoryEntries.mapIndexed { index: Int, entry: Map.Entry<Int, Float> ->
-                    val categoryName = categoryMap[entry.key]?.name ?: "Unknown"
-                    BarEntry(index.toFloat(), entry.value, categoryName)
-                }
+                val barEntries =
+                    categoryEntries.mapIndexed { index: Int, entry: Map.Entry<Int, Float> ->
+                        val categoryName = categoryMap[entry.key]?.name ?: "Unknown"
+                        BarEntry(index.toFloat(), entry.value, categoryName)
+                    }
 
-                val barDataSet = BarDataSet(barEntries, "Income Categories")
+                val barDataSet = BarDataSet(barEntries, "Categories")
                 barDataSet.colors = allColors
                 val barData = BarData(barDataSet)
                 barChart.data = barData
@@ -233,14 +273,23 @@ class StatsActivity : AppCompatActivity() {
                 barChart.setDrawValueAboveBar(true)
                 barChart.setFitBars(true)
 
-                val legend: Legend = barChart.legend
+                val legend = barChart.legend
                 legend.isEnabled = true
                 legend.verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
                 legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
                 legend.orientation = Legend.LegendOrientation.HORIZONTAL
                 legend.setDrawInside(false)
+                legend.textSize = 12f
+
+                barChart.xAxis.apply {
+                    granularity = 1f
+                    setDrawGridLines(false)
+                    setLabelCount(barEntries.size, false)
+                    valueFormatter = IndexAxisValueFormatter(categoryEntries.map {
+                        categoryMap[it.key]?.name ?: "Unknown"
+                    })
+                }
             })
         })
     }
 }
-
