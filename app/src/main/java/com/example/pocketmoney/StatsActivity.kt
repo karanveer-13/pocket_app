@@ -2,8 +2,13 @@ package com.example.pocketmoney
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.pocketmoney.adapter.CategoryAdapter
+import com.example.pocketmoney.adapter.CategoryPercentage
 import com.example.pocketmoney.application.TransactionApplication
 import com.example.pocketmoney.database.TransactionRepository
 import com.example.pocketmoney.viewmodel.TransactionViewModel
@@ -20,12 +25,12 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.github.mikephil.charting.formatter.PercentFormatter
 
-
 class StatsActivity : AppCompatActivity() {
 
     private lateinit var viewModel: TransactionViewModel
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
+    private lateinit var recyclerView: RecyclerView
 
     private var isIncomeSelected = false // Toggle state for income/expense
 
@@ -54,18 +59,21 @@ class StatsActivity : AppCompatActivity() {
 
         pieChart = findViewById(R.id.pieChart)
         barChart = findViewById(R.id.barChart)
+        recyclerView = findViewById(R.id.recyclerViewCategories)
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
         setupPieChart()
         setupBarChart()
 
-        // Example of toggling between income and expense (implement your actual toggle logic)
         val toggleIncomeExpense =
             findViewById<android.widget.ToggleButton>(R.id.toggleIncomeExpense)
         toggleIncomeExpense.setOnCheckedChangeListener { _, isChecked ->
             isIncomeSelected = isChecked
             updateCharts()
+            updateRecyclerView()
         }
         updateCharts()
+        updateRecyclerView()
     }
 
     private fun updateCharts() {
@@ -75,6 +83,14 @@ class StatsActivity : AppCompatActivity() {
         } else {
             setupPieChartForExpense()
             setupBarChartForExpense()
+        }
+    }
+
+    private fun updateRecyclerView() {
+        if (isIncomeSelected) {
+            setupRecyclerViewForIncome()
+        } else {
+            setupRecyclerViewForExpense()
         }
     }
 
@@ -139,7 +155,6 @@ class StatsActivity : AppCompatActivity() {
         })
     }
 
-
     private fun setupBarChartForExpense() {
         viewModel.allExpenses.observe(this, { expenses ->
             val categories = mutableMapOf<Int, Float>()
@@ -195,7 +210,6 @@ class StatsActivity : AppCompatActivity() {
         })
     }
 
-
     private fun setupPieChartForIncome() {
         viewModel.allIncomes.observe(this, { incomes ->
             val categories = mutableMapOf<Int, Float>()
@@ -241,7 +255,6 @@ class StatsActivity : AppCompatActivity() {
         })
     }
 
-
     private fun setupBarChartForIncome() {
         viewModel.allIncomes.observe(this, { incomes ->
             val categories = mutableMapOf<Int, Float>()
@@ -273,6 +286,10 @@ class StatsActivity : AppCompatActivity() {
                 barChart.setDrawValueAboveBar(true)
                 barChart.setFitBars(true)
 
+                barChart.setVisibleXRange(0f, 5f)
+                barChart.setPinchZoom(true)
+                barChart.isDoubleTapToZoomEnabled = false
+
                 val legend = barChart.legend
                 legend.isEnabled = true
                 legend.verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
@@ -292,4 +309,54 @@ class StatsActivity : AppCompatActivity() {
             })
         })
     }
+
+    private fun setupRecyclerViewForExpense() {
+        viewModel.allExpenses.observe(this, { expenses ->
+            val categories = mutableMapOf<Int, Float>()
+
+            // Sum expenses by category
+            expenses.forEach { expense ->
+                val currentAmount = categories[expense.categoryId] ?: 0f
+                categories[expense.categoryId] = currentAmount + expense.amount.toFloat()
+            }
+
+            val totalExpense = categories.values.sum()
+
+            viewModel.allCategories.observe(this, { categoryMap ->
+                val categoryPercentages = categories.map { (categoryId, amount) ->
+                    val categoryName = categoryMap[categoryId]?.name ?: "Unknown"
+                    CategoryPercentage(categoryName, amount,totalExpense)
+                }
+
+                val adapter = CategoryAdapter(categoryPercentages)
+                recyclerView.adapter = adapter
+            })
+        })
+    }
+
+
+    private fun setupRecyclerViewForIncome() {
+        viewModel.allIncomes.observe(this, { incomes ->
+            val categories = mutableMapOf<Int, Float>()
+
+            // Sum incomes by category
+            incomes.forEach { income ->
+                val currentAmount = categories[income.categoryId] ?: 0f
+                categories[income.categoryId] = currentAmount + income.amount.toFloat()
+            }
+
+            val totalIncome = categories.values.sum()
+
+            viewModel.allCategories.observe(this, { categoryMap ->
+                val categoryPercentages = categories.map { (categoryId, amount) ->
+                    val categoryName = categoryMap[categoryId]?.name ?: "Unknown"
+                    CategoryPercentage(categoryName, amount,totalIncome)
+                }
+
+                val adapter = CategoryAdapter(categoryPercentages)
+                recyclerView.adapter = adapter
+            })
+        })
+    }
+
 }
