@@ -20,14 +20,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.pocketmoney.MainActivity
 import com.example.pocketmoney.R
 import com.example.pocketmoney.application.TransactionApplication
-import com.example.pocketmoney.database.Income
-import com.example.pocketmoney.database.PocketMoneyDatabase
-import com.example.pocketmoney.databinding.ActivityTransactionPageBinding
 import com.example.pocketmoney.viewmodel.TransactionViewModel
 import example.pocketmoney.adapter.TransactionAdapter
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import android.widget.ImageButton
+import android.widget.TextView
+import com.example.pocketmoney.databinding.ActivityTransactionPageBinding
 
 class TransactionPageActivity : AppCompatActivity() {
     lateinit var binding: ActivityTransactionPageBinding
@@ -41,14 +38,19 @@ class TransactionPageActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_transaction_page)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        val btnBack = toolbar.findViewById<ImageButton>(R.id.btnBack)
+        val toolbarTitle = toolbar.findViewById<TextView>(R.id.toolbarTitle)
         val recyclerView = findViewById<RecyclerView>(R.id.rvTransactionHistory)
         val etSearchTransaction = findViewById<EditText>(R.id.etSearchTransaction)
         val rgFilter = findViewById<RadioGroup>(R.id.rgFilter)
-        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.black))
 
         setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Transactions"
+        supportActionBar?.setDisplayShowTitleEnabled(false) // Disable default title
+        toolbarTitle.text = "Transactions"
+
+        btnBack.setOnClickListener {
+            onBackPressed()
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

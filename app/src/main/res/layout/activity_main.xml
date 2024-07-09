@@ -15,48 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/toolbar_title"
-            android:layout_width="160dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Pocket Money"
-            android:textAppearance="@color/white"
-            android:textColor="@color/white"
-            android:textSize="25sp"
-            android:textStyle="italic" />
-
-        <ImageView
-            android:id="@+id/btnTransactionHistory"
-            android:layout_width="80dp"
-            android:layout_height="35dp"
-            android:layout_gravity="end"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/img_1" />
-        <ImageButton
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="end"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/baseline_query_stats_24"
-            android:background="@android:color/transparent"
-            android:onClick="showStats" />
-
-
     </androidx.appcompat.widget.Toolbar>
-
-    <!--    <EditText-->
-    <!--        android:id="@+id/editTextAllowance"-->
-    <!--        android:layout_width="220dp"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:ems="10"-->
-    <!--        android:hint="Set Allowance"-->
-    <!--        android:inputType="number"-->
-    <!--        android:textAlignment="center"-->
-    <!--        android:textSize="30dp"-->
-    <!--        android:textStyle="bold"-->
-    <!--        tools:layout_editor_absoluteX="96dp"-->
-    <!--        tools:layout_editor_absoluteY="80dp" />-->
 
     <EditText
         android:id="@+id/editTextText"
@@ -157,6 +116,56 @@
         android:text="Choose category:"
         app:layout_constraintBaseline_toBaselineOf="@+id/spinnerCategory"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteX="14dp"
+        tools:layout_editor_absoluteY="14dp">
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="@+id/toolbar"
+        tools:layout_editor_absoluteX="0dp">
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="131dp"
+            android:text="Pocket Money"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/white"
+            android:textStyle="italic" />
+
+        <ImageView
+            android:id="@+id/btnTransactionHistory"
+            android:layout_width="33dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="10dp"
+            android:layout_toEndOf="@+id/toolbar_title"
+            android:src="@drawable/img_1" />
+
+        <ImageButton
+            android:id="@+id/btnStats"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            android:onClick="showStats"
+            android:src="@drawable/baseline_query_stats_24" />
+
+    </RelativeLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

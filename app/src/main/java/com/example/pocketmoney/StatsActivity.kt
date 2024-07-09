@@ -130,7 +130,7 @@ class StatsActivity : AppCompatActivity() {
                 val pieDataSet = PieDataSet(pieEntries, " ")
                 pieDataSet.colors = allColors
                 val pieData = PieData(pieDataSet)
-                pieData.setValueFormatter(PercentFormatter(pieChart)) // Add percentage formatter
+                pieData.setValueFormatter(PercentFormatter(pieChart))
                 pieChart.data = pieData
                 pieChart.invalidate()
 
@@ -149,8 +149,8 @@ class StatsActivity : AppCompatActivity() {
                 legend.orientation = Legend.LegendOrientation.HORIZONTAL
                 legend.setDrawInside(false)
                 legend.textSize = 12f
-                legend.isWordWrapEnabled = true // Enable word wrap for legend labels
-                legend.maxSizePercent = 0.9f // Adjust max size percentage as needed
+                legend.isWordWrapEnabled = true
+                legend.maxSizePercent = 0.9f
             })
         })
     }
@@ -230,7 +230,7 @@ class StatsActivity : AppCompatActivity() {
                 val pieDataSet = PieDataSet(pieEntries, " ")
                 pieDataSet.colors = allColors
                 val pieData = PieData(pieDataSet)
-                pieData.setValueFormatter(PercentFormatter(pieChart)) // Add percentage formatter
+                pieData.setValueFormatter(PercentFormatter(pieChart))
                 pieChart.data = pieData
                 pieChart.invalidate()
 
@@ -249,8 +249,8 @@ class StatsActivity : AppCompatActivity() {
                 legend.orientation = Legend.LegendOrientation.HORIZONTAL
                 legend.setDrawInside(false)
                 legend.textSize = 12f
-                legend.isWordWrapEnabled = true // Enable word wrap for legend labels
-                legend.maxSizePercent = 0.9f // Adjust max size percentage as needed
+                legend.isWordWrapEnabled = true
+                legend.maxSizePercent = 0.9f
             })
         })
     }
